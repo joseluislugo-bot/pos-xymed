@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>POS XYMed</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+        h1 { color: #2c3e50; }
+        .catalogo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+        .producto { background: white; padding: 20px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .producto:hover { border-color: #3498db; }
+        .producto h3 { margin: 0 0 8px 0; }
+        .producto p { margin: 0; color: #3498db; font-size: 1.2em; font-weight: bold; }
+        .carrito { background: white; padding: 20px; border-radius: 8px; }
+        .carrito h2 { margin-top: 0; }
+        .item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .total { font-size: 1.4em; font-weight: bold; text-align: right; margin-top: 15px; color: #2c3e50; }
+        button { background: #2ecc71; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1em; cursor: pointer; width: 100%; margin-top: 15px; }
+        button:hover { background: #27ae60; }
+        .mensaje { display: none; background: #2ecc71; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>🏥 POS XYMed</h1><p style="color: #7f8c8d; margin-top: -10px;">💵 Tipo de cambio: <strong>{{ tipo_cambio }}</strong></p>
+    <a href="/historial" style="float: right; background: #2c3e50; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">📋 Ver Historial</a>
+    <div class="catalogo">
+        {% for clave, producto in catalogo.items() %}
+        <div class="producto" onclick="agregar('{{ producto.nombre }}', {{ producto.precio }})">
+            <h3>{{ producto.nombre }}</h3>
+            <p>${{ producto.precio }} MXN</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="carrito">
+        <h2>🛒 Carrito</h2>
+        <div id="items"></div>
+        <div class="total" id="total">Total: $0 MXN</div>
+        <button onclick="finalizarVenta()">Finalizar Venta</button>
+        <div class="mensaje" id="mensaje">✓ Venta guardada exitosamente</div>
+    </div>
+
+    <script>
+        let carrito = [];
+
+        function agregar(nombre, precio) {
+            carrito.push({ nombre, precio });
+            renderCarrito();
+        }
+
+        function renderCarrito() {
+            const items = document.getElementById("items");
+            items.innerHTML = carrito.map(p => 
+                `<div class="item"><span>${p.nombre}</span><span>$${p.precio} MXN</span></div>`
+            ).join("");
+            const total = carrito.reduce((s, p) => s + p.precio, 0);
+            document.getElementById("total").innerText = `Total: $${total} MXN`;
+        }
+
+        function finalizarVenta() {
+            if (carrito.length === 0) return alert("Agrega productos primero");
+            const total = carrito.reduce((s, p) => s + p.precio, 0);
+            fetch("/venta", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productos: carrito, total })
+            }).then(() => {
+                document.getElementById("mensaje").style.display = "block";
+                carrito = [];
+                renderCarrito();
+                setTimeout(() => document.getElementById("mensaje").style.display = "none", 3000);
+            });
+        }
+    </script>
+</body>
+</html>

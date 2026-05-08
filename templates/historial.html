@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Ventas</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+        h1 { color: #2c3e50; }
+        .venta { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+        .venta-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .fecha { color: #7f8c8d; font-size: 0.9em; }
+        .total-venta { font-weight: bold; color: #2ecc71; }
+        .producto { padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .total-dia { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; text-align: center; font-size: 1.4em; margin-bottom: 20px; }
+        a { color: #3498db; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <a href="/">← Volver al POS</a>
+    <h1>📋 Historial de Ventas</h1>
+
+    <div class="total-dia">
+        <button onclick="limpiar()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; width: 100%;">🗑️ Limpiar historial del día</button>
+
+<script>
+function limpiar() {
+    if (confirm("¿Seguro que quieres limpiar el historial?")) {
+        fetch("/limpiar", { method: "POST" })
+        .then(() => location.reload());
+    }
+}
+</script>
+        Total del día: ${{ total_dia }} MXN
+    </div>
+
+    {% if ventas %}
+        {% for venta in ventas|reverse %}
+        <div class="venta">
+            <div class="venta-header">
+                <span class="fecha">🕐 {{ venta.fecha }}</span>
+                <span class="total-venta">${{ venta.total }} MXN</span>
+            </div>
+            {% for producto in venta.productos %}
+            <div class="producto">
+                <span>{{ producto.nombre }}</span>
+                <span>${{ producto.precio }} MXN</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay ventas registradas aún.</p>
+    {% endif %}
+</body>
+</html>
